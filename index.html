@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indonesian Vocabulary Quiz</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text: #1f2937;
+      --border: #e5e7eb;
+      --correct: #10b981;
+      --incorrect: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .quiz-container { background: var(--card-bg); max-width: 650px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .header { margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+    .header h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
+    .progress { font-size: 0.9rem; color: #6b7280; }
+    .question { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; }
+    .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .btn { background: #fff; border: 2px solid var(--border); padding: 12px 16px; border-radius: 8px; text-align: left; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; }
+    .btn:hover:not(:disabled) { border-color: var(--primary); background-color: #f0fdf4; }
+    .btn.selected { border-color: var(--primary); background-color: #e0e7ff; }
+    .btn.correct { background-color: #d1fae5; border-color: var(--correct); color: #065f46; font-weight: bold; }
+    .btn.incorrect { background-color: #fee2e2; border-color: var(--incorrect); color: #991b1b; }
+    .feedback { padding: 12px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 20px; display: none; }
+    .feedback.show { display: block; }
+    .feedback.correct-bg { background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .feedback.incorrect-bg { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .footer { display: flex; justify-content: space-between; align-items: center; }
+    .action-btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .action-btn:hover { background-color: var(--primary-hover); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .results { text-align: center; }
+    .results h2 { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
+    .results p { font-size: 1.2rem; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <div id="quiz-screen">
+    <div class="header">
+      <h1>Indonesian Vocabulary Quiz</h1>
+      <div class="progress" id="progress">Question 1 of 24</div>
+    </div>
+    
+    <div class="question" id="question-text">Loading question...</div>
+    <div class="options" id="options-container"></div>
+    
+    <div class="feedback" id="feedback"></div>
+    
+    <div class="footer">
+      <div></div>
+      <button class="action-btn" id="next-btn" onclick="nextQuestion()" disabled>Next</button>
+    </div>
+  </div>
+
+  <div id="result-screen" class="results" style="display: none;">
+    <h2>Quiz Completed! 🎉</h2>
+    <p id="score-text">You scored 0 out of 24</p>
+    <button class="action-btn" onclick="restartQuiz()">Restart Quiz</button>
+  </div>
+</div>
+
+<script>
+  const quizData = [
+    { question: 'Which Indonesian word for "we / us" EXCLUDES the listener?', options: ['Kita', 'Kami', 'Mereka', 'Saya'], answer: 1, note: 'Kami excludes the person spoken to. Kita includes the listener.' },
+    { question: 'If you are talking to a boss, teacher, or elder, which word should you use for "I / me"?', options: ['Aku', 'Kamu', 'Saya', 'Anda'], answer: 2, note: 'Saya is the formal pronoun for "I / me".' },
+    { question: 'What does the pronoun "mereka" mean in English?', options: ['He / She', 'You (formal)', 'They / Them', 'We / Us'], answer: 2, note: 'Mereka is used for "they / them".' },
+    { question: 'How do you address someone as "you" in an informal, relaxed setting?', options: ['Anda', 'Kamu', 'Dia', 'Kami'], answer: 1, note: 'Kamu is informal "you", while Anda is formal.' },
+    { question: 'What does "dia" translate to in English?', options: ['He / She', 'They / Them', 'You (formal)', 'We (inclusive)'], answer: 0, note: 'Dia is gender-neutral and means "he / she".' },
+    { question: 'What does the question word "kapan" mean?', options: ['Where', 'When', 'How', 'Why'], answer: 1, note: 'Kapan asks about time ("when").' },
+    { question: 'How do you ask "where to" (destination) in Indonesian?', options: ['Di mana', 'Dari mana', 'Ke mana', 'Siapa'], answer: 2, note: 'Ke mana asks for directional destination.' },
+    { question: 'What does "bagaimana" mean?', options: ['Why', 'What', 'Who', 'How'], answer: 3, note: 'Bagaimana means "how".' },
+    { question: 'Which pair of words both mean "why" in Indonesian?', options: ['Apa / Siapa', 'Kenapa / Mengapa', 'Di mana / Ke mana', 'Kapan / Bagaimana'], answer: 1, note: 'Kenapa (informal) and Mengapa (formal) both mean "why".' },
+    { question: 'What does the phrase "di belakang" mean?', options: ['In front of', 'Beside / Next to', 'Behind', 'Under / Below'], answer: 2, note: 'Di belakang indicates position behind an object.' },
+    { question: 'How do you say "near" in Indonesian?', options: ['Sampai', 'Dekat', 'Antara', 'Dengan'], answer: 1, note: 'Dekat means near or close to.' },
+    { question: 'What does the preposition "untuk" mean?', options: ['From', 'With / By', 'Until / Up to', 'For'], answer: 3, note: 'Untuk expresses purpose or recipient ("for").' },
+    { question: 'How do you say "on top of / above" in Indonesian?', options: ['Di bawah', 'Di atas', 'Di samping', 'Di depan'], answer: 1, note: 'Di atas means above or on top of.' },
+    { question: 'Which preposition means "between / among"?', options: ['Antara', 'Dari', 'Sampai', 'Ke'], answer: 0, note: 'Antara translates to "between" or "among".' },
+    { question: 'What does the verb "tinggal" mean?', options: ['To buy', 'To see', 'To live / stay', 'To come'], answer: 2, note: 'Tinggal means to reside, live, or stay.' },
+    { question: 'How do you say "to know" (a fact/information) in Indonesian?', options: ['Mau', 'Suka', 'Tahu', 'Lihat'], answer: 2, note: 'Tahu means to know.' },
+    { question: 'What does "pergi" mean?', options: ['To go', 'To come', 'To drink', 'To eat'], answer: 0, note: 'Pergi means "to go".' },
+    { question: 'How do you say "to buy" in Indonesian?', options: ['Lihat', 'Beli', 'Minum', 'Makan'], answer: 1, note: 'Beli means to buy.' },
+    { question: 'What does "suka" mean in English?', options: ['Want', 'Like', 'Eat', 'See'], answer: 1, note: 'Suka means "to like".' },
+    { question: 'What does the adjective "mudah" mean?', options: ['Easy', 'Difficult', 'Small', 'Hot'], answer: 0, note: 'Mudah means easy.' },
+    { question: 'How do you say "cold" in Indonesian?', options: ['Panas', 'Dingin', 'Jelek', 'Bagus'], answer: 1, note: 'Dingin means cold.' },
+    { question: 'What does "bagus" mean?', options: ['Bad / Ugly', 'Good / Nice', 'Big', 'Small'], answer: 1, note: 'Bagus means good or nice.' },
+    { question: 'How do you say "small" in Indonesian?', options: ['Besar', 'Kecil', 'Sulit', 'Mudah'], answer: 1, note: 'Kecil means small.' },
+    { question: 'Which pair of adjectives are exact opposites meaning "Hot" and "Cold"?', options: ['Mudah / Sulit', 'Bagus / Jelek', 'Besar / Kecil', 'Panas / Dingin'], answer: 3, note: 'Panas (hot) and Dingin (cold).' }
+  ];
+
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let selectedOption = null;
+
+  function loadQuestion() {
+    const q = quizData[currentQuestionIndex];
+    document.getElementById('progress').innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+    document.getElementById('question-text').innerText = q.question;
+    
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+    
+    const feedback = document.getElementById('feedback');
+    feedback.className = 'feedback';
+    feedback.innerText = '';
+    
+    document.getElementById('next-btn').disabled = true;
+    selectedOption = null;
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.innerText = opt;
+      btn.onclick = () => selectOption(idx);
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function selectOption(index) {
+    if (selectedOption !== null) return;
+    
+    selectedOption = index;
+    const q = quizData[currentQuestionIndex];
+    const buttons = document.querySelectorAll('.options .btn');
+    const feedback = document.getElementById('feedback');
+
+    buttons.forEach(b => b.disabled = true);
+
+    if (index === q.answer) {
+      score++;
+      buttons[index].classList.add('correct');
+      feedback.classList.add('show', 'correct-bg');
+      feedback.innerText = `Correct! ${q.note}`;
+    } else {
+      buttons[index].classList.add('incorrect');
+      buttons[q.answer].classList.add('correct');
+      feedback.classList.add('show', 'incorrect-bg');
+      feedback.innerText = `Incorrect. ${q.note}`;
+    }
+
+    document.getElementById('next-btn').disabled = false;
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('score-text').innerText = `You scored ${score} out of ${quizData.length}`;
+  }
+
+  function restartQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    document.getElementById('quiz-screen').style.display = 'block';
+    document.getElementById('result-screen').style.display = 'none';
+    loadQuestion();
+  }
+
+  loadQuestion();
+</script>
+
+</body>
+</html>
